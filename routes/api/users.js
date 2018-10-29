@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const gravatar = require('gravatar');
 
 // Load User model
 const User = require('../../models/User');
@@ -19,9 +20,18 @@ router.post('/registration', (req, res) => {
           email: 'Sorry, email already exists'
         });
       } else {
+        const avatar = gravatar.url(
+          'req.body.email', {
+            s: '200', 
+            r: 'pg', 
+            d: 'mm'
+          }
+        );
+
         const newUser = new User({
           name: req.body.name,
           email: req.body.email,
+          avatar,
           password: req.body.password
         });
 
