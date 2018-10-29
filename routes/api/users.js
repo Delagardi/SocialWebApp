@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const gravatar = require('gravatar');
+const bcrypt = require('bcryptjs');
 
 // Load User model
 const User = require('../../models/User');
@@ -35,10 +36,16 @@ router.post('/registration', (req, res) => {
           password: req.body.password
         });
 
-        newUser.save()
-          .then(user => res.json(user))
-          .catch(error => console.log('We get some error with saving: ' + error));
+        bcrypt.genSalt(10, (error, salt) => {
+          bcrypt.hash(newUser.password, salt, (error, hash) => {
+            if (error) throw error;
+            newUser.password = hash;
 
+            newUser.save()
+              .then(user => res.json(user))
+              .catch(error => console.log('We get some error with saving: ' + error));
+          })
+        });
       }
     })
 });
