@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const keys = require('../../config/keys.js');
 
 // Load User model
 const User = require('../../models/User');
@@ -64,9 +66,33 @@ router.post('/login', (req, res) => {
 
       bcrypt.compare(req.body.password, user.password).then(isMatch => {
         if (isMatch) {
-          res.json({
-            message: "Well done!"
-          });
+          const payload = {
+            id: user.id, 
+            name: user.name,
+            email: user.email,
+            date: Date.now()
+          }
+
+          // Creating token that expires in 24h
+          jwt.sign(
+            payload, 
+            keys.tknKey, 
+            { expiresIn: 86400 }, 
+            (error, token) => {
+              if (error) {
+                return res.status(400).json({
+                  message: "We have some problem with token creation"
+                })
+              }
+              res.json({
+                message: "Well done!",
+                token: 'Bearer ' + token
+              });
+            }
+          );
+          // res.json({
+          //   message: "Well done!"
+          // });
         } else {
           res.status(400).json({
             message: "Password is incorrect"
